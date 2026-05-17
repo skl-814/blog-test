@@ -9,9 +9,9 @@
     >
 </head>
 <body>
-    {% if login %}
+    {% if login_status %}
     <h1>welcome, {{welcome_txt}}</h1>
-
+    <br>
     {% else %}
     <h1>welcome</h1>
     <p><a href="/signup">sign up</a>|<a href="/signin">sign in</a></p>

@@ -1,7 +1,10 @@
-from flask import Flask,render_template,request,jsonify
+from flask import Flask,render_template,request,jsonify,redirect,url_for
 import sqlite3 as sl
-import json,hashlib
+import json
+import hashlib,uuid
 import os,pathlib,logging
+import sys,time
+
 app = Flask(__name__)
 
 log_dir = pathlib.Path("./log")
@@ -88,13 +91,16 @@ def init_db():
     db_con = sl.connect(user_db_path)
     db_cur = db_con.cursor()
     db_cur.execute('''CREATE TABLE IF NOT EXISTS USERS(
-        ID INT PRIMARY KEY AUTOINCREMENT,
+        ID INTEGER PRIMARY KEY AUTOINCREMENT,
         USER_NAME TEXT     NOT NULL,
         PASSWORD_SHA256 TEXT NOT NULL,
         LAST_LOGIN_IP   TEXT         ,
-        LOGIN BOOLEAN DEFAULT 0         );
+        LOGIN BOOLEAN DEFAULT 0      ,
+        UUID TEXT UNIQUE NOT NULL    );
                        ''')
     db_con.commit()
+
+allow_field = ("ID","USER_NAME","PASSWORD_SHA256","LAST_LOGIN_IP","LOGIN","UUID")
 
 # need to be delete
 # db_con = sl.connect(user_info_dir / "users.db")
@@ -102,23 +108,24 @@ def init_db():
 
 def add_user(user_name:str,password:str,ip:str|None,login_st:bool=False):
     pwd_sha256 = hashlib.sha256(password.encode("utf-8")).hexdigest()
+    usr_uuid = uuid.uuid4().hex
     db_con = sl.connect(user_db_path)
     db_cur = db_con.cursor()
     try:
-        db_cur.execute(f'''INSERT INTO USERS (USER_NAME,PASSWORD_SHA256,LAST_LOGIN_IP,LOGIN)
-                   VALUES (?,?,?,?)
-                   ''',(user_name,pwd_sha256,ip,login_st))
+        db_cur.execute(f'''INSERT INTO USERS (USER_NAME,PASSWORD_SHA256,LAST_LOGIN_IP,LOGIN,UUID)
+                   VALUES (?,?,?,?,?)
+                   ''',(user_name,pwd_sha256,ip,login_st,str(usr_uuid),))
         db_con.commit()
 
     except sl.IntegrityError:
+        logger.warning(f"add user {user_name} failed")
         return False
-    
     else:
         logger.info(f"add user:{user_name},ip:{ip}")
         return True
     
     finally:
-
+        
         db_con.close()
 
 def search_user(**kw):
@@ -128,7 +135,6 @@ def search_user(**kw):
     db_con = sl.connect(user_db_path)
     db_con.row_factory = sl.Row
     db_cur = db_con.cursor()
-    allow_field = ("user_name","password_sha256","last_login_ip","login","id")
 
     conditions = []
     params = []
@@ -142,11 +148,64 @@ def search_user(**kw):
         params.append(values)
 
     where = ' AND '.join(conditions)
-    sql = f"SELECT id,user_name,password_sha256,last_login_ip,login FROM USERS WHERE {where}"
+    sql = f"SELECT id,user_name,password_sha256,last_login_ip,login,uuid FROM USERS WHERE {where}"
     db_cur.execute(sql,params)
     rows = db_cur.fetchall()
     db_con.close()
     return [dict(x) for x in rows]
+
+def modify_user(user:dict,**new_kv) -> int:
+    if not new_kv:
+        logger.debug(f"called modify_user() without specify what of user {user} to change")
+        return 1
+
+    db_con = sl.connect(user_db_path)
+    db_cur = db_con.cursor()
+    set_keys = []
+    params = []
+    for k,v in new_kv.items():
+        if k not in allow_field:
+            logger.info(f"midify_user(): not allowed key word:{k}. Might meet sql injection")
+            continue
+
+        set_keys.append(f"{k} = ?")
+        params.append(v)
+    if not set_keys:
+        logger.info(f"call modify_user() wihthout valid key")
+        return -1
+        
+    
+    params.append(user["UUID"])
+    sql = f"UPDATE USERS SET {','.join(set_keys)} WHERE UUID = ?"
+    try:
+        db_cur.execute(sql,params)
+        if new_kv.get("LOGIN",-1) != -1 and len(new_kv) == 1:
+            logger.info(f"user {user['USER_NAME']} log in at {time.asctime(time.localtime())}")
+        
+        logger.info(f"modified user {user}: {new_kv}")
+        
+    except Exception as e:
+        db_con.rollback()
+        try:
+            rt = search_user(**user)
+            if not rt:
+                logger.debug(f"cannot reach an inexistent user: {user}")
+            
+        except:
+            logger.error(f"E:cannot search user {user} in database,it might be some disastrous error")
+            return -1
+
+        else:
+            logger.warning(f"cannot modify user :{e}")
+            return 1
+        
+    else:
+        db_con.commit()
+
+    finally:
+        db_con.close()
+
+    return 0
 
 @app.route("/")
 def index():
@@ -161,9 +220,9 @@ def index():
     update_statistics(statistics_j=statistics_j)
 
     # for user in db_cur.execute("SELECT USER_NAME,IP,LOGIN FROM USERS"):
-    for user in search_user(last_login_ip=user_ip,login=True):
+    for user in search_user(LAST_LOGIN_IP=user_ip,LOGIN=1):
         login_status = True
-        user_name = user["user_name"]
+        user_name = user["USER_NAME"]
         welcome_txt = f"{user_name}"
     
     return render_template("index.html",login_status=login_status,user_name=user_name,welcome_txt=welcome_txt,visitor_counter=visitor_counter)
@@ -214,6 +273,41 @@ def signup():
         #        }
         #    )
            return render_template("signup.html"),200
+    else:
+        return jsonify({"message":"unsupport http method"}),405
+
+
+@app.route("/signin",methods=["POST","GET"])
+def signin():
+    if request.method == 'POST':
+        user_name = request.form.get("username")
+        password = request.form.get("password") or ""
+        pwd_sha256 = hashlib.sha256(password.encode('utf-8')).hexdigest()
+        if user_name and password:
+            rt = search_user(USER_NAME=user_name)
+            if rt:
+                user = rt[0]
+                if user["PASSWORD_SHA256"] == pwd_sha256:
+                    st = modify_user(user,LAST_LOGIN_IP=request.remote_addr,LOGIN=True)
+                    if st:
+                        return jsonify({"message":"sign in failed.Please get in touch with admin and report it"}),500
+                
+                    return redirect(url_for("index"),code=301)
+                
+                else:
+                    return jsonify({"message":"cannot login.your password might be wrong"}),403
+                # jsonify({"message":"sign in sucessfully.will redirect to index page soon"})
+
+            logger.info(f"someone login failed.username={user_name},ip={request.remote_addr}")    
+            return jsonify({"message":"cannot find this user.your username or password might be wrong"}),403
+
+        else:
+            logger.info(f"someone login failed.username={user_name},ip={request.remote_addr}")    
+            return jsonify({"message":"cannot find this user.miss username or password"}),403
+        
+    elif request.method == 'GET':
+        return render_template("signin.html"),200
+    
     else:
         return jsonify({"message":"unsupport http method"}),405
 
