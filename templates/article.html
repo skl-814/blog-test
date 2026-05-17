@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<head>
+    <title> {{article-title}} - {{article_update_date}} - A test blog fourm project</title>
+    <meta charset="utf-8">
+    <meta lang="zh_cn">
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+    >
+</head>
+<body>
+    {% if login_status %}
+    <h1>welcome, {{welcome_txt}}</h1>
+    <br>
+    {% else %}
+    <h1>welcome</h1>
+    <p><a href="/signup">sign up</a>|<a href="/signin">sign in</a></p>
+    {% endif %}
+
+    <h1>{{article-title}}</h1>
+    <h3>{{article_update_date}} - {{article_author}}</h3>
+    <article>
+        {{article_html}}
+    </article>
+    <p>the latest articles:</p>
+    {% if posts %}
+        <h2>最近文章</h2>
+        <ul>
+            {% for post in posts %}
+                <li>{{loop.index}} - {{post.title}} - {{post.date}}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>暂无文章</p>
+    {% endif %}
+</body>
+<footer>
+    <p>total visited {{visitor_counter}}</p>
+</footer>
