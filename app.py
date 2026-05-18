@@ -5,6 +5,9 @@ import hashlib,uuid
 import os,pathlib,logging
 import sys,time
 
+sys.path.append("./")
+import article_render
+
 app = Flask(__name__)
 
 log_dir = pathlib.Path("./log")
@@ -207,12 +210,25 @@ def modify_user(user:dict,**new_kv) -> int:
 
     return 0
 
+def if_user_login(user_ip:str) -> tuple[bool,str]:
+    if user_ip == 'unknown':
+        return False, "Guest"
+    
+    rt = search_user(LAST_LOGIN_IP=user_ip,LOGIN=True)
+    if rt:
+        user = rt[0]
+        login_status = True
+        user_name = user["USER_NAME"]
+        return login_status,user_name
+    
+    return False, "Guest"
+
 @app.route("/")
 def index():
-    user_ip = request.remote_addr
-    login_status = False
-    user_name = "Guest"
-    welcome_txt = ""
+    user_ip = request.remote_addr or 'unknown'
+    # login_status = False
+    # user_name = "Guest"
+    # welcome_txt = ""
 
     # statistics 
     visitor_counter = statistics_j.get("visitor_counter",0) +1
@@ -220,10 +236,11 @@ def index():
     update_statistics(statistics_j=statistics_j)
 
     # for user in db_cur.execute("SELECT USER_NAME,IP,LOGIN FROM USERS"):
-    for user in search_user(LAST_LOGIN_IP=user_ip,LOGIN=1):
-        login_status = True
-        user_name = user["USER_NAME"]
-        welcome_txt = f"{user_name}"
+    # for user in search_user(LAST_LOGIN_IP=user_ip,LOGIN=1):
+    #     login_status = True
+    #     user_name = user["USER_NAME"]
+    login_status,user_name = if_user_login(user_ip=user_ip)
+    welcome_txt = f"welcome, {user_name}"
     
     return render_template("index.html",login_status=login_status,user_name=user_name,welcome_txt=welcome_txt,visitor_counter=visitor_counter)
 
@@ -310,6 +327,25 @@ def signin():
     
     else:
         return jsonify({"message":"unsupport http method"}),405
+
+@app.route("/infopage_404")
+def page_404():
+    return render_template("404.html")
+
+@app.route("/article/<article_name>")
+def article(article_name):
+    arti,st = article_render.render(article_name)
+    if st == 404:
+        return redirect(url_for("status_info_page/infopage_404"),),404
+    elif st == 503:
+        return jsonify({"message":"you are visiting a resource with a format that we currently not support"}),503
+    elif st == 200:
+        login_status,user_name = if_user_login(request.remote_addr or 'unknown')
+        return render_template("article.html",**arti,login_status=login_status,welcome_txt=f"welcome, {user_name}")
+    else:
+        return render_template("status_info_page/503.html"),503
+    
+
 
 if __name__ == '__main__':
     init_db()
