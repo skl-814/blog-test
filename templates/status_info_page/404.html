@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>A test blog fourm project</title>
+    <title>404 not flound - A test blog fourm project</title>
     <meta charset="utf-8">
     <meta lang="zh_cn">
     <link
@@ -13,19 +13,15 @@
     {% if login_status %}
     <h1>welcome, {{welcome_txt}}</h1>
     <br>
+    <br>
     {% else %}
     <h1>welcome</h1>
     <p><a href="/signup">sign up</a>|<a href="/signin">sign in</a></p>
+    <br>
     {% endif %}
-
-    <p>this is a test blog fourm project site,please fell free to do anything</p>
-    <p>we will support :</p>
-    <ul>
-        <li>sign up,sign in and personal profile</li>
-        <li>read bolg </li>
-        <li>upload blog article</li>
-        <li>comment on blog articles</li>
-    </ul>
+    <h1>404 Not Found</h1>
+    <p>Sorry,the page you required is not found on server. You can watch other articles</p>
+    <p><a href='/' title="go to home page">go to index page</a></p>
 </body>
 <footer>
     <p>the latest articles:</p>
