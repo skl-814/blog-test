@@ -59,9 +59,9 @@ def render(article_name:str,file_type='markdown',enable_cache:bool=True,encoding
                 },404
     
     # currently markdown and plain text only
-    atn_l = article_path.name.split('-')
+    atn_l = article_path.name.split(".")[0].split('-')
     article_title = atn_l[0]
-    article_author = atn_l[1]
+    article_author = atn_l[-1]
 
     if file_type == 'markdown':
         if enable_cache:
@@ -83,7 +83,7 @@ def render(article_name:str,file_type='markdown',enable_cache:bool=True,encoding
                 'article_title':article_title,
                 'article_author':article_author,
                 'article_update_date':article_path.stat().st_mtime,
-                'article_create_date':article_path.stat().st_birthtime,
+                #'article_create_date':article_path.stat().st_birthtime,
 
                 },200
     
@@ -95,7 +95,7 @@ def render(article_name:str,file_type='markdown',enable_cache:bool=True,encoding
                 'article_title':article_title,
                 'article_author':article_author,
                 'article_update_date':article_path.stat().st_mtime,
-                'article_create_date':article_path.stat().st_birthtime,
+                #'article_create_date':article_path.stat().st_birthtime,
 
                 },200
     
@@ -106,7 +106,7 @@ def render(article_name:str,file_type='markdown',enable_cache:bool=True,encoding
                 'article_title':article_title,
                 'article_author':article_author,
                 'article_update_date':article_path.stat().st_mtime,
-                'article_create_date':article_path.stat().st_birthtime,
+                #'article_create_date':article_path.stat().st_birthtime,
 
                 },200
     else:
@@ -115,7 +115,7 @@ def render(article_name:str,file_type='markdown',enable_cache:bool=True,encoding
             'article_title':article_title,
             'article_author':article_author,
             'article_update_date':article_path.stat().st_mtime,
-            'article_create_date':article_path.stat().st_birthtime,
+            #'article_create_date':article_path.stat().st_birthtime,
 
             },503
     
@@ -124,9 +124,9 @@ def get_article_list(num:int = 4):
     article_list = []
     for article in article_dir.iterdir():
         if article.is_file() and not article.name.startswith('_'):
-            atn_l = article.name.split('-')
+            atn_l = article.name.split(".")[0].split('-')
             article_title = atn_l[0]
-            article_author = atn_l[1]
+            article_author = atn_l[-1]
             article_list.append(Post_article(
                 title=article_title,
                 author=article_author,

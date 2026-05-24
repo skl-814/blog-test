@@ -350,7 +350,7 @@ def profile():
     user_ip = request.remote_addr or "unknown"
     rt = search_user(LAST_LOGIN_IP=user_ip,LOGIN=True)
     if not rt:
-        return redirect(url_for("login")),302
+        return redirect(url_for("signin")),302
     
     user = rt[0]
     avatar_img = user.get("AVATAR_IMG","/static/default_avatar.png")
@@ -379,7 +379,7 @@ def articles():
 
 @app.route("/article/<article_name>")
 def article(article_name):
-    arti,st = article_render.render(article_name)
+    arti,st = article_render.render(article_name,enable_cache=False)
     posts = article_render.article_list
     if st == 404:
         return render_template("status_info_page/404.html"), 404
