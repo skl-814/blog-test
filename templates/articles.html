@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title> blog-test - A test blog fourm project</title>
+    <title>A test blog fourm project</title>
     <meta charset="utf-8">
     <meta lang="zh_cn">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -19,18 +19,8 @@
     <h1>welcome</h1>
     <p><a href="/signup">sign up</a>|<a href="/signin">sign in</a></p>
     {% endif %}
+    <p>this is a test blog fourm project site,please fell free to do anything</p>
 
-    <h1>{{article_title}}</h1>
-    <h3>{{article_update_date}} - {{article_author}}</h3>
-
-    <div class="article-content">
-    <article>
-        {{article_content}}
-    </article>
-    </div>
-
-</body>
-<footer>
     <p>the latest articles:</p>
     {% if posts %}
         <h2>最近文章</h2>
@@ -44,5 +34,9 @@
     {% else %}
         <p>暂无文章</p>
     {% endif %}
+</body>
+
+<footer>
+        <p>total visited {{visitor_counter}}</p>
 </footer>
 </html>

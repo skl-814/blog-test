@@ -241,8 +241,12 @@ def index():
     #     user_name = user["USER_NAME"]
     login_status,user_name = if_user_login(user_ip=user_ip)
     welcome_txt = f"welcome, {user_name}"
+
+
+    posts = article_render.article_list
+
     
-    return render_template("index.html",login_status=login_status,user_name=user_name,welcome_txt=welcome_txt,visitor_counter=visitor_counter)
+    return render_template("index.html",login_status=login_status,user_name=user_name,welcome_txt=welcome_txt,visitor_counter=visitor_counter,posts=posts)
 
 @app.route("/signup", methods=["POST","GET"])
 def signup():
@@ -268,9 +272,8 @@ def signup():
                 return jsonify({
                     "message":"sign up failed.It might be that you used the same username as others"
                 }),400
-            return jsonify({
-                "message":"sign up sucessfully.Please login now"
-                }),201
+            # redirect to a signup success info page which will auto-redirect again
+            return redirect(url_for("status_info_page", status_code="signup_success")), 302
     
         else:
             return jsonify({
@@ -330,22 +333,58 @@ def signin():
 
 @app.route("/infopage_404")
 def page_404():
-    return render_template("404.html")
+    return render_template("status_info_page/404.html"), 404
+
+@app.route("/articles")
+def articles():
+    user_ip = request.remote_addr or 'unknown'
+
+    # statistics 
+    visitor_counter = statistics_j.get("visitor_counter",0) +1
+    statistics_j["visitor_counter"] = visitor_counter
+    update_statistics(statistics_j=statistics_j)
+
+    login_status,user_name = if_user_login(user_ip=user_ip)
+    welcome_txt = f"welcome, {user_name}"
+
+    article_list = article_render.article_list
+    posts = article_list #[{"title":x.title,"author":x.author,"date":x.date} for x in article_list]
+    return render_template("articles.html",posts=posts,visitor_counter=visitor_counter,login_status=login_status,welcome_txt=welcome_txt)
+
 
 @app.route("/article/<article_name>")
 def article(article_name):
     arti,st = article_render.render(article_name)
+    posts = article_render.article_list
     if st == 404:
-        return redirect(url_for("status_info_page/infopage_404"),),404
+        return render_template("status_info_page/404.html"), 404
     elif st == 503:
-        return jsonify({"message":"you are visiting a resource with a format that we currently not support"}),503
+        return redirect(url_for("status_info_page", status_code=503)),503
     elif st == 200:
         login_status,user_name = if_user_login(request.remote_addr or 'unknown')
-        return render_template("article.html",**arti,login_status=login_status,welcome_txt=f"welcome, {user_name}")
+        return render_template("article.html",**arti,login_status=login_status,welcome_txt=f"welcome, {user_name}",posts=posts)
     else:
-        return render_template("status_info_page/503.html"),503
+        return redirect(url_for("status_info_page", status_code=503)),503
     
+@app.route("/status_info_page/<status_code>")
+def status_info_page(status_code):
+    posts = article_render.article_list
+    
+    tpl_path = pathlib.Path(f"./templates/status_info_page/{status_code}.html")
 
+    if tpl_path.exists():
+        try:
+            code = int(status_code)
+        except Exception:
+            # named page (like signup_success) — return 200
+            visitor_counter = statistics_j.get("visitor_counter",0) +1
+            statistics_j["visitor_counter"] = visitor_counter
+            update_statistics(statistics_j=statistics_j)
+            return render_template(f"status_info_page/{status_code}.html",posts=posts,visitor_counter=visitor_counter),200
+        else:
+            return render_template(f"status_info_page/{status_code}.html",posts=posts),code
+    else:
+        return redirect(url_for("status_info_page", status_code=404)),404
 
 if __name__ == '__main__':
     init_db()

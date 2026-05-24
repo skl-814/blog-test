@@ -4,6 +4,8 @@
     <title>A test blog fourm project</title>
     <meta charset="utf-8">
     <meta lang="zh_cn">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
     <link
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
@@ -11,8 +13,9 @@
 </head>
 <body>
     {% if login_status %}
-    <h1>welcome, {{welcome_txt}}</h1>
+    <h1>{{welcome_txt}}</h1>
     <br>
+    
     {% else %}
     <h1>welcome</h1>
     <p><a href="/signup">sign up</a>|<a href="/signin">sign in</a></p>
@@ -22,18 +25,20 @@
     <p>we will support :</p>
     <ul>
         <li>sign up,sign in and personal profile</li>
-        <li>read bolg </li>
+        <li>read blog </li>
         <li>upload blog article</li>
         <li>comment on blog articles</li>
     </ul>
 </body>
 <footer>
-    <p>the latest articles:</p>
+    <p>the latest <a href="/articles">articles</a>:</p>
     {% if posts %}
         <h2>最近文章</h2>
         <ul>
             {% for post in posts %}
-                <li>{{loop.index}} - {{post.title}} - {{post.date}}</li>
+                <li><a href="/article/{{post.file_path.name}}">
+                    {{loop.index}} - {{post.title}} - {{post.author}}- {{post.date}}
+                </a></li>
             {% endfor %}
         </ul>
     {% else %}
