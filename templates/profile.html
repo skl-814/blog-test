@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>A test blog fourm project</title>
+    <title>profile</title>
     <meta charset="utf-8">
     <meta lang="zh_cn">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,32 +10,60 @@
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
     >
+
+<style>
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;    /* 让body至少占满整个视口 */
+  margin: 0;            /* 消除默认外边距 */
+}
+main {
+  flex: 1;              /* main自动撑开剩余空间，把footer推到底部 */
+}
+@media (max-width: 576px) {
+  footer {
+    padding: 1rem;
+  }
+}
+.profile-avatar {
+  width: 40vw;
+  max-width: 200px;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+</style>
 </head>
 <body>
-<nav  class="container-fluid">
+<nav class="container-fluid">
     <ul>
         <li><a href="/">home</a></li>
         <li><a href="/articles">articles</a></li>
-        {% if login_status %}
-            <li><a href="/profile">profile</a></li>
-            <li><a href="/logout">logout</a></li>
-        {% else %}
-            <li><a href="/signup">sign up</a></li>
-            <li><a href="/signin">sign in</a></li>
-        {% endif %}
-        <li><a href="/article/about-skl.md">about</a></li>
+        <li><a href="/article/about.html">about</a></li>
     </ul>
 </nav>
-    {% if login_status %}
-    <h1>{{welcome_txt}}</h1>
-    <br>
-    
-    {% else %}
-    <h1>welcome</h1>
-    <p><a href="/signup">sign up</a>|<a href="/signin">sign in</a></p>
-    {% endif %}
+{% if login_status %}
 
-    <p>this is a test blog fourm project site,please fell free to do anything</p>
+    <h1>{{welcome_txt}}</h1>
+    <img src="{{ avatar_img }}" alt="avatar" class="profile-avatar">
+    <ul>
+        <li>username : {{user_name}}</li>
+        <li>email : {{email}}</li>
+        <li><a href="/logout">logout</a></li>
+    </ul>
+    
+
+
+
+
+
+{% else %}
+    <h1>welcome, you haven't log in yet.</h1>
+    <p>Please <strong><a href="/signup">sign up</a></strong> or <strong><a href="/signin">sign in</a></strong> to watch your profile.</p>
+{% endif %}
+
+    
     <p>we will support :</p>
     <ul>
         <li>sign up,sign in and personal profile</li>
@@ -43,8 +71,10 @@
         <li>upload blog article</li>
         <li>comment on blog articles</li>
     </ul>
-</body>
+
+
 <footer>
+    <p>this is a test blog fourm project site,please fell free to do anything. :)</p>
     <p>the latest <a href="/articles">articles</a>:</p>
     {% if posts %}
         <h2>最近文章</h2>
@@ -61,4 +91,5 @@
 
     <p>total visited {{visitor_counter}}</p>
 </footer>
+</body>
 </html>

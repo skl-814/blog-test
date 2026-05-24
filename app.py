@@ -331,6 +331,31 @@ def signin():
     else:
         return jsonify({"message":"unsupport http method"}),405
 
+
+@app.route("/logout")
+def logout():
+    user_ip = request.remote_addr or 'unknown'
+    rt = search_user(LAST_LOGIN_IP=user_ip,LOGIN=True)
+    if not rt:
+        return jsonify({
+            "message": "You haven't logged in yet.",
+        }),400
+    
+    user = rt[0]
+    st = modify_user(user,LOGIN=False)
+    return redirect(url_for("index")),302
+
+@app.route("/profile")
+def profile():
+    user_ip = request.remote_addr or "unknown"
+    rt = search_user(LAST_LOGIN_IP=user_ip,LOGIN=True)
+    if not rt:
+        return redirect(url_for("login")),302
+    
+    user = rt[0]
+    avatar_img = user.get("AVATAR_IMG","/static/default_avatar.png")
+    posts = article_render.article_list
+    return render_template("profile.html",user_name=user["USER_NAME"],email="unknown",login_status=user["LOGIN"],avatar_img=avatar_img,posts=posts),200
 @app.route("/infopage_404")
 def page_404():
     return render_template("status_info_page/404.html"), 404
@@ -388,7 +413,7 @@ def status_info_page(status_code):
 
 if __name__ == '__main__':
     init_db()
-    app.run(debug=True)
+    app.run(debug=True,port=2000)
 
 # json.dump(statistics_j,statistics_f)
 # statistics_f.close()

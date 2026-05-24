@@ -39,10 +39,12 @@ class Post_article:
             self.abstract = self.abstract[:200] + "..."
 
     def guess_filetype(self,file_path:pathlib.Path):
-        if file_path.suffix in ['.md','.markdown']:
+        if file_path.suffix in ('.md','.markdown'):
             return "markdown"
-        elif file_path.suffix in ['.txt']:
+        elif file_path.suffix in ('.txt'):
             return "txt"
+        elif file_path.suffix in (".html",".html"):
+            return "html"
         else:
             return "txt"
 
@@ -87,6 +89,17 @@ def render(article_name:str,file_type='markdown',enable_cache:bool=True,encoding
     
     elif file_type == 'txt':
         # txt format article don't need to cache
+        with open(article_path,'rt',encoding=encoding) as f:
+            return {
+                'article_content':markupsafe.Markup(f.read()),
+                'article_title':article_title,
+                'article_author':article_author,
+                'article_update_date':article_path.stat().st_mtime,
+                'article_create_date':article_path.stat().st_birthtime,
+
+                },200
+    
+    elif file_type == 'html':
         with open(article_path,'rt',encoding=encoding) as f:
             return {
                 'article_content':markupsafe.Markup(f.read()),
