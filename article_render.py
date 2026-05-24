@@ -7,7 +7,7 @@ import time
 import markdown2 as mk
 import markupsafe
 
-mker = mk.Markdown(extras=["fenced-code-blocks"])
+mker = mk.Markdown(extras=["fenced-code-blocks","task_list","tables"])
 
 article_dir = pathlib.Path("./blog_articles")
 cache_dir = article_dir / '_cache'
