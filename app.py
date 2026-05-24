@@ -413,7 +413,7 @@ def status_info_page(status_code):
 
 if __name__ == '__main__':
     init_db()
-    app.run(debug=True,port=2000)
+    app.run(debug=True,port=2000,host='0.0.0.0')
 
 # json.dump(statistics_j,statistics_f)
 # statistics_f.close()
