@@ -4,4 +4,4 @@ __pycache__/
 log/
 data/
 test_code/
-blog_articles/
+blog_articles/_cache/
