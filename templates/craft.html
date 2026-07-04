@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>craft - let's writing!</title>
+    <meta charset="utf-8">
+    <meta lang="zh_cn">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+    >
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" >
+
+
+
+<style>
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;    /* 让body至少占满整个视口 */
+  margin: 0;            /* 消除默认外边距 */
+}
+main {
+  flex: 1;              /* main自动撑开剩余空间，把footer推到底部 */
+}
+@media (max-width: 576px) {
+  footer {
+    padding: 1rem;
+  }
+}
+.profile-avatar {
+  width: 40vw;
+  max-width: 100px;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+</style>
+</head>
+<body>
+<nav class="container-fluid">
+    <ul>
+        <li><a href="/">home</a></li>
+        <li><a href="/articles">articles</a></li>
+        <li><a href="/article/_about-skl.md">about</a></li>
+        <li><a href="/logout">logout</a></li>
+    </ul>
+</nav>
+{% if login_status %}
+
+    <h1>welcome, {{ user_name }}</h1>
+    <img src="{{ avatar_img }}" alt="avatar" class="profile-avatar">
+    <br>
+    <!-- import rich text editor -->
+    <iframe id="quill-iframe" 
+      src="{{ url_for('componets',comp_id='text_editor-quill_editor') }}" 
+      width="95%" height="350"
+      sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals"
+    >
+    </iframe>
+
+    <form method="post" id="submit_text" action="{{ url_for('submit_article_text') }}">
+        <input type="hidden" name="content" id="hiddenContent">
+        <button type="submit" id="submitBtn"><strong>save</strong></button>
+    </form>
+
+    
+    <!-- <div id="editor">
+        <p> some initial <strong>bold</strong> text</p>
+    </div> -->
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+
+    
+
+{% else %}
+    <h1>welcome, you haven't log in yet.</h1>
+    <p>Please <strong><a href="/signup">sign up</a></strong> or <strong><a href="/signin">sign in</a></strong> to write your article.</p>
+{% endif %}
+
+<!-- initialize quill -->
+ <script>
+    const iframe = document.getElementById("quill-iframe");
+    const form = document.getElementById("submit_text")
+    const hiddenField = document.getElementById("hiddenContent");
+
+    form.addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        try {
+            if (!iframe.contentWindow || !iframe.contentWindow.getQuillContent) {
+                alert("the editor is loading.please try later");
+                return;
+            }
+        } catch (err) {
+            alert("cannot reacher the text editor\nsomething went wrong :(");
+            console.error(err);
+            return;
+        }
+
+        const editorContent = iframe.contentWindow.getQuillContent();
+        hiddenField.value = editorContent;
+        console.log("sync the text from iframe");
+
+        form.submit();
+        
+    })
+
+    //function handleTextSubmit() {
+    //    if (iframe.contentWindow && iframe.contentWindow.getQuillContent) {
+    //        const editorContent = iframe.contentWindow.getQuillContent();
+    //        hiddenField.value = editorContent;
+    //        console.log("sync the text from iframe");
+//
+    //    } else {
+    //        console.log("err: cannot get the content of editor")
+    //    }
+    //}
+//
+    //const submitBtn = document.getElementById("submitBtn");
+    //submitBtn.addEventListener("click",handleTextSubmit);
+ </script>
+<footer>
+    <p>this is a test blog fourm project site,please fell free to do anything. :)</p>
+</footer>
+</body>
+</html>

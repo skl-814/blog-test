@@ -1,3 +1,4 @@
 requests
 flask
-markdown2
+markdown2[all]
+latex2mathml

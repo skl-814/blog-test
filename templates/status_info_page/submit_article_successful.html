@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Sign up success</title>
-    <meta http-equiv="refresh" content="4;url=/signin">
+    <meta http-equiv="refresh" content="4;url={{ super_page }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
 
 <style>
@@ -21,13 +21,12 @@ main {
 </head>
 <body>
 
-    <h1>Welcome, new user!</h1>
+    <h1>Welcome, {{user_name}}</h1>
 
     <main class="container">
-        <h2>Sign up successful</h2>
-        <p>Your account has been created successfully.</p>
-        <p>You will be redirected to the sign in page in a few seconds.</p>
-        <p>If nothing happens, <a href="/signin">click here to sign in</a> or <a href="/">go to home</a>.</p>
+        <h2>Submit successful</h2>
+        <p>You will be redirected to the <strong>{{ super_page_name }}</strong> page in a few seconds.</p>
+        <p>If nothing happens, click here to <a href="{{ super_page }}">go back</a> or <a href="/">go to home</a>.</p>
     </main>
 
 <footer>
