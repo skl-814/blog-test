@@ -1,4 +1,4 @@
-from flask import Flask,render_template,request,jsonify,redirect,url_for
+from flask import Flask,render_template,request,jsonify,redirect,url_for,session
 import sqlite3 as sl
 import json
 import hashlib,uuid
@@ -11,6 +11,8 @@ sys.path.append("./")
 import article_render
 
 app = Flask(__name__)
+
+app.secret_key = "fbc8b0c6046c8702bc0c5661807655425a52d991315f4f357a47a4c257aa47ea"
 
 log_dir = pathlib.Path("./log")
 if not os.path.exists(log_dir):
