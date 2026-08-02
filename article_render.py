@@ -274,8 +274,12 @@ def get_article_list(num:int = 4):
                 date=time.asctime(time.localtime(article.stat().st_mtime)),
                 file_path=article
             ))
+    if num == -1:
+        return sorted(article_list,key=lambda x:x.date,reverse=True)
+
     if len(article_list) < num:
         return sorted(article_list,key=lambda x:x.date,reverse=True)
+        
     return sorted(article_list,key=lambda x:x.date,reverse=True)[:num]
 
 article_list:list = get_article_list()

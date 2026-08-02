@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sign up success</title>
+    <meta http-equiv="refresh" content="4;url={{ super_page }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+
+<style>
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;    /* 让body至少占满整个视口 */
+  margin: 0;            /* 消除默认外边距 */
+}
+main {
+  flex: 1;              /* main自动撑开剩余空间，把footer推到底部 */
+}
+</style>
+</head>
+<body>
+
+    <h1>Welcome, {{user_name}}</h1>
+
+    <main class="container">
+        <h2>upload successful</h2>
+        <p>You will be redirected to the <strong>{{ super_page_name }}</strong> page in a few seconds.</p>
+        <p>If nothing happens, click here to <a href="{{ super_page }}">go back</a> or <a href="/">go to home</a>.</p>
+    </main>
+
+<footer>
+    <p>total visited {{visitor_counter}}</p>
+</footer>
+</html>

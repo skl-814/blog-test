@@ -52,25 +52,28 @@ main {
     <h1>welcome, {{ user_name }}</h1>
     <img src="{{ avatar_img }}" alt="avatar" class="profile-avatar">
     <br>
-    <!-- import rich text editor -->
-    <iframe id="quill-iframe" 
-      src="{{ url_for('componets',comp_id='text_editor-quill_editor') }}" 
-      width="95%" height="350"
-      sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals"
-    >
-    </iframe>
+    <!-- editor area -->
+    <div id="editor_area">
+        <!-- import rich text editor -->
+        <iframe id="quill-iframe" 
+          src="{{ url_for('componets',comp_id='text_editor-quill_editor') }}" 
+          width="95%" height="350"
+          sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals"
+        >
+        </iframe>
 
-    <form method="post" id="submit_text" action="{{ url_for('submit_article_text') }}">
-        <input type="hidden" name="content" id="hiddenContent">
-        <button type="submit" id="submitBtn"><strong>save</strong></button>
-    </form>
+        <form method="post" id="submit_text" action="{{ url_for('submit_article_text') }}">
+            <input type="hidden" name="content" id="hiddenContent">
+            <input type="text" name="article_title" id="article_title" placeholder="your article title">
+            <button type="submit" id="submitBtn"><strong>save</strong></button>
+        </form>
 
     
-    <!-- <div id="editor">
-        <p> some initial <strong>bold</strong> text</p>
-    </div> -->
-    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
-
+        <!-- <div id="editor">
+            <p> some initial <strong>bold</strong> text</p>
+        </div> -->
+        <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+    </div>
     
 
 {% else %}

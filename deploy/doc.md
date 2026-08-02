@@ -26,8 +26,6 @@ sudo apt install nginx
 uv pip install gunicorn
 ```
 
-
-
 ## running
 
 ### set systemd (optional)
@@ -45,10 +43,10 @@ After=network.target
 
 [Service]
 User=pi
-Croup=www-data
+Group=www-data
 WorkingDirectory=/home/pi/blog-test
-Envitonment="PATH=/home/pi/blog-test/.venv/bin"
-ExecStart=/home/pi/blog-test/.venv/bin/gunicorn -- workers $(lscpu)*2+1 --bind unix:blog-test.sock -m 007 app:app
+Environment="PATH=/home/pi/blog-test/.venv/bin"
+ExecStart=/home/pi/blog-test/.venv/bin/gunicorn --workers 3 --bind unix:/var/www/blog-test/myapp.sock -m 007 app:app
 
 [Install]
 WantedBy=multi-user.target

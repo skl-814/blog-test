@@ -4,6 +4,7 @@ import json
 import hashlib,uuid
 import os,pathlib,logging
 import sys,time
+import datetime
 
 admin_email_addr = "skl2007814@163.com"
 
@@ -13,6 +14,7 @@ import article_render
 app = Flask(__name__)
 
 app.secret_key = "fbc8b0c6046c8702bc0c5661807655425a52d991315f4f357a47a4c257aa47ea"
+app.config["PERMANENT_SESSION_LIFETIME"] = datetime.timedelta(days=1)
 
 log_dir = pathlib.Path("./log")
 if not os.path.exists(log_dir):
@@ -172,7 +174,7 @@ def modify_user(user:dict,**new_kv) -> int:
     params = []
     for k,v in new_kv.items():
         if k not in allow_field:
-            logger.info(f"midify_user(): not allowed key word:{k}. Might meet sql injection")
+            logger.info(f"modify_user(): not allowed key word:{k}. Might meet sql injection")
             continue
 
         set_keys.append(f"{k} = ?")
@@ -186,9 +188,12 @@ def modify_user(user:dict,**new_kv) -> int:
     sql = f"UPDATE USERS SET {','.join(set_keys)} WHERE UUID = ?"
     try:
         db_cur.execute(sql,params)
-        if new_kv.get("LOGIN",-1) != -1 and len(new_kv) == 1:
-            logger.info(f"user {user['USER_NAME']} log in at {time.asctime(time.localtime())}")
-        
+        if new_kv.get("LOGIN",-1) != -1: # log for login and logout
+            if new_kv.get("LOGIN",-1) == True:#len(new_kv) == 1:
+                logger.info(f"user {user['USER_NAME']} log in at {time.asctime(time.localtime())}")
+            elif new_kv.get("LOGIN",-1) == False:#len(new_kv) == 1:
+                logger.info(f"user {user['USER_NAME']} log out at {time.asctime(time.localtime())}")
+            
         logger.info(f"modified user {user}: {new_kv}")
         
     except Exception as e:
@@ -215,14 +220,18 @@ def modify_user(user:dict,**new_kv) -> int:
     return 0
 
 def if_user_login(user_ip:str) -> tuple[bool,str]:
-    if user_ip == 'unknown':
+    if not session.get("LOGIN", False):
         return False, "Guest"
     
     rt = search_user(LAST_LOGIN_IP=user_ip,LOGIN=True)
     if rt:
         user = rt[0]
-        login_status = True
         user_name = user["USER_NAME"]
+
+        if user_name != session.get("USER_NAME"):
+            return False, "Guest"
+        
+        login_status = True
         return login_status,user_name
     
     return False, "Guest"
@@ -318,7 +327,14 @@ def signin():
                     st = modify_user(user,LAST_LOGIN_IP=request.remote_addr,LOGIN=True)
                     if st:
                         return jsonify({"message":"sign in failed.Please get in touch with admin and report it"}),500
-                
+
+                    # successed to login
+                    session["USER_NAME"] = user["USER_NAME"]
+                    session["UUID"] = user["UUID"]
+                    session["LOGIN"] = True
+                    ####debug
+                    # logger.info(f"INFO: {user["USER_NAME"]} logged in.session:{session}")
+                     
                     return redirect(url_for("index"),code=301)
                 
                 else:
@@ -343,20 +359,36 @@ def signin():
 def logout():
     user_ip = request.remote_addr or 'unknown'
     rt = search_user(LAST_LOGIN_IP=user_ip,LOGIN=True)
-    if not rt:
+    if not ( rt 
+            and ("USER_NAME" in session) 
+            and session.get("LOGIN",False) 
+            and (session.get("USER_NAME") == rt[0]["USER_NAME"]) 
+            ):
+        
         return jsonify({
             "message": "You haven't logged in yet.",
         }),400
     
     user = rt[0]
+    user_name = user["USER_NAME"]
     st = modify_user(user,LOGIN=False)
+    session["LOGIN"] = False
+    del session["UUID"]
+    del session["USER_NAME"]
+    ####debug
+    # logger.info(f"{user_name} logged out {session}")
     return redirect(url_for("index")),302
 
 @app.route("/profile")
 def profile():
     user_ip = request.remote_addr or "unknown"
     rt = search_user(LAST_LOGIN_IP=user_ip,LOGIN=True)
-    if not rt:
+    if not ( rt 
+            and ("USER_NAME" in session) 
+            and session.get("LOGIN",False) 
+            and (session.get("USER_NAME") == rt[0]["USER_NAME"]) 
+            ):
+        
         return redirect(url_for("signin")),302
 
     visitor_counter = statistics_j.get("visitor_counter",0) +1
@@ -372,7 +404,12 @@ def profile():
 def craft():
     user_ip = request.remote_addr or "unknown"
     rt = search_user(LAST_LOGIN_IP=user_ip,LOGIN=True)
-    if not rt:
+    if not ( rt 
+            and ("USER_NAME" in session) 
+            and session.get("LOGIN",False) 
+            and (session.get("USER_NAME") == rt[0]["USER_NAME"]) 
+            ):
+        
         return redirect(url_for("signin")),302
 
     visitor_counter = statistics_j.get("visitor_counter",0) +1
@@ -391,14 +428,18 @@ def page_404():
 
 @app.route("/articles")
 def articles():
-    user_ip = request.remote_addr or 'unknown'
+    # user_ip = request.remote_addr or 'unknown'
 
     # statistics 
     visitor_counter = statistics_j.get("visitor_counter",0) +1
     statistics_j["visitor_counter"] = visitor_counter
     update_statistics(statistics_j=statistics_j)
 
-    login_status,user_name = if_user_login(user_ip=user_ip)
+    # login_status,user_name = if_user_login(user_ip=user_ip)
+
+    login_status = session.get("LOGIN", False)
+    user_name = session.get("USER_NAME", "Guest")
+
     welcome_txt = f"welcome, {user_name}"
 
     article_list = article_render.article_list
@@ -507,14 +548,19 @@ def componets(comp_id:str):
 @app.route("/submit_article_text", methods=["POST"])
 def submit_article_text():
     user_ip = request.remote_addr or "unknown"
-    if user_ip == "unknown":
+    if user_ip == "unknown" or "USER_NAME" not in session:
         return jsonify({
             "msg": "you cannot submit your text as we cannot know who are you according to the ip_address",
             "status": "failed"
         })
     
     rt = search_user(LAST_LOGIN_IP=user_ip)
-    if not rt:
+    if not ( rt 
+            and ("USER_NAME" in session) 
+            and session.get("LOGIN",False) 
+            and (session.get("USER_NAME") == rt[0]["USER_NAME"]) 
+            ):
+        
         logger.debug(f"err: unknown user tried to submit text edited by the embeded text editor. ip={user_ip}")
         return jsonify({
             "msg": "you cannot submit your text as we cannot know who are you",
@@ -531,6 +577,7 @@ def submit_article_text():
     
     # get metadata
     article_metadata = article_render.extract_metadata_from_text(editor_content)
+    article_metadata["article_title"] = request.form.get("article_title") or article_metadata["article_title"] # try to replace auto gennerated title with user given title
 
     # save article
     stcode = article_render.save_new_post_by_text(article_name=article_metadata["article_title"],article_text=editor_content,article_author=user["USER_NAME"],metadata=article_metadata,tpe='html')
@@ -547,6 +594,48 @@ def submit_article_text():
     #     "status": "succeeded"
     #     })
 
+
+@app.route("/upload",methods=["GET", "POST"])
+def upload():
+    user_ip = request.remote_addr or "unknown"
+    rt = search_user(LAST_LOGIN_IP=user_ip,LOGIN=True)
+    if not ( rt 
+            and ("USER_NAME" in session) 
+            and session.get("LOGIN",False) 
+            and (session.get("USER_NAME") == rt[0]["USER_NAME"]) 
+            ):
+        
+        return redirect(url_for("signin")),302
+
+    visitor_counter = statistics_j.get("visitor_counter",0) +1
+    statistics_j["visitor_counter"] = visitor_counter
+    update_statistics(statistics_j=statistics_j)
+
+    user = rt[0]
+    avatar_img = user.get("AVATAR_IMG","/static/default_avatar_512x512.png")
+    user_upload_dir = data_dir / "user_uploads" / user.get("USER_NAME", "unknown")
+    os.makedirs(user_upload_dir, exist_ok=True)
+
+    if request.method == "GET":
+        return render_template("upload.html",user_name=user["USER_NAME"],email="unknown",login_status=user["LOGIN"],avatar_img=avatar_img,visitor_counter=visitor_counter),200
+
+    elif request.method == "POST":
+        upload_file = request.files.get("file")
+        if not upload_file:
+            return jsonify({
+            "msg":"cannot submit empty file",
+            "status": "failed"
+            })
+
+        filename = upload_file.filename
+        upload_file.save(user_upload_dir / filename)
+
+    else:
+        return jsonify({"mesage":"unsupport http method"}),405
+    
+    return redirect(url_for("status_info_page", status_code="submit_file_successful", super_page='/upload', super_page_name='upload file')), 302
+
+        
 
 if __name__ == '__main__':
     init_db()
