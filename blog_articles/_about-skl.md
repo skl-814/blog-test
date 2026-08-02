@@ -12,7 +12,7 @@ It will support :
 - [ ] ~~sign up,sign in,sign out~~ (now available) and personal profile
 - [x] read blog articles
 - [ ] upload blog article
-- [ ] edit blog online use rich text editor
+- [x] edit blog online use rich text editor
 - [ ] comment on blog articles
 - [ ] optional auto translation or show articles that has translations based on you settings
 - [ ] complete tests of code

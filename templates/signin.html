@@ -10,13 +10,33 @@
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
     >
+<style>
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;    /* 让body至少占满整个视口 */
+  margin: 0;            /* 消除默认外边距 */
+}
+main {
+  flex: 1;              /* main自动撑开剩余空间，把footer推到底部 */
+}
+</style>
 </head>
 <body>
+    <nav  class="container-fluid">
+    <ul>
+        <li><a href="/">home</a></li>
+        <li><a href="/articles">articles</a></li>
+        <li><a href="/signup">sign up</a></li>
+        <li><a href="/article/_about-skl.md">about</a></li>
+    </ul>
+</nav>
     <h1>please sign in</h1>
     <form method="post">
         <p>your user name <input type="text" name="username" placeholder="your user name" required></p>
         <p>password <input type="password" name="password" placeholder="your password" required></p>
         <p><input type="submit" value="signin"></p>
     </form>
+    <p>Don't have an account yet? click <strong><a href="/signup">here</a></strong> to signin</p>
 </body>
 </html>

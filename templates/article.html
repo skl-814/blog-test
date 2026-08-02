@@ -10,6 +10,17 @@
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
     >
+<style>
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;    /* 让body至少占满整个视口 */
+  margin: 0;            /* 消除默认外边距 */
+}
+main {
+  flex: 1;              /* main自动撑开剩余空间，把footer推到底部 */
+}
+</style>
 </head>
 <body>
 <nav class="container-fluid">
@@ -23,13 +34,13 @@
             <li><a href="/signup">sign up</a></li>
             <li><a href="/signin">sign in</a></li>
         {% endif %}
-        <li><a href="/article/about-skl.md">about</a></li>
+        <li><a href="/article/_about-skl.md">about</a></li>
     </ul>
 </nav>
 
 
-    <h1>{{article_title}}</h1>
-    <h3>{{article_update_date}} - {{article_author}}</h3>
+    <h1>{{ article_title }}</h1>
+    <h5>{{ article_update_date }} - {{ article_author }}</h5>
 
     <div class="article-content">
     <article>
@@ -37,11 +48,36 @@
     </article>
     </div>
 
+<!-- below are to support mermaid -->
+<!--this is from https://github.com/trentm/python-markdown2/wiki/mermaid -->
+ <script type="module" defer>
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@9/dist/mermaid.esm.min.mjs';
+  mermaid.Initialize({
+    securityLevel: 'loose',
+    startOnLoad: true
+  });
+  let observer = new MutationObserver(mutations => {
+    for(let mutation of mutations) {
+      mutation.target.style.visibility = "visible";
+    }
+  });
+  document.querySelectorAll("pre.mermaid-pre div.mermaid").forEach(item => {
+    observer.observe(item, { 
+      attributes: true, 
+      attributeFilter: ['data-processed'] });
+  });
+</script>
+<style>
+.mermaid-pre {
+    visibility: hidden;
+}
+</style>
+<!-- end -->
 </body>
 <footer>
     <p>the latest articles:</p>
     {% if posts %}
-        <h2>最近文章</h2>
+        <h2>latest posts</h2>
         <ul>
             {% for post in posts %}
                 <a href="/article/{{post.file_path.name}}">

@@ -28,7 +28,7 @@
 <footer>
     <p>the latest articles:</p>
     {% if posts %}
-        <h2>最近文章</h2>
+        <h2>latest posts</h2>
         <ul>
             {% for post in posts %}
                 <a href="/article/{{post.file_path.name}}">

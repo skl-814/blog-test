@@ -1,0 +1,6 @@
+
+`config.py`: provide configure of the entire app
+
+`app.py`: start: import `rt.py`
+`rt.py`: call `init.py` first:    init,
+    finished: `app.py` get rt

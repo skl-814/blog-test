@@ -10,6 +10,22 @@
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
     >
+<style>
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;    /* 让body至少占满整个视口 */
+  margin: 0;            /* 消除默认外边距 */
+}
+main {
+  flex: 1;              /* main自动撑开剩余空间，把footer推到底部 */
+}
+.article-abstract {
+max-width: 80%;
+max-height: 30%;
+}
+</style>
 </head>
 <body>
 <nav class="container-fluid">
@@ -17,13 +33,14 @@
         <li><a href="/">home</a></li>
         <li><a href="/articles">articles</a></li>
         {% if login_status %}
+            <li><a href="/craft">craft</a></li>
             <li><a href="/profile">profile</a></li>
             <li><a href="/logout">logout</a></li>
         {% else %}
             <li><a href="/signup">sign up</a></li>
             <li><a href="/signin">sign in</a></li>
         {% endif %}
-        <li><a href="/article/about-skl.md">about</a></li>
+        <li><a href="/article/_about-skl.md">about</a></li>
     </ul>
 </nav>
     <p>this is a test blog fourm project site,please fell free to do anything</p>
@@ -33,9 +50,11 @@
         <h2>最近文章</h2>
         <ul>
             {% for post in posts %}
-                <a href="/article/{{post.file_path.name}}">
-                    <li>{{loop.index}} - {{post.title}} - {{post.author}}- {{post.date}}</li>
-                </a>
+                
+                    <li><a href="/article/{{post.file_path.name}}"><p>{{loop.index}} - {{post.title}} - {{post.author}}- {{post.date}}</p></a>
+                        <article class="article-abstract">{{post.abstract}}</article>
+                    </li>
+                
             {% endfor %}
         </ul>
     {% else %}
