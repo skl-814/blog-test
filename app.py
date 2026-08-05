@@ -635,7 +635,11 @@ def upload():
     
     return redirect(url_for("status_info_page", status_code="submit_file_successful", super_page='/upload', super_page_name='upload file')), 302
 
-        
+# this part is for wechat link verification only
+@app.route("/c3f7f7f887b6468bf55102f1b6f8621d.txt")
+def c3f7f7f887b6468bf55102f1b6f8621d_txt():
+    return "2158aedb7ac5f7a8fa26ff739e025d3a0bbdb102",200
+
 
 if __name__ == '__main__':
     init_db()
