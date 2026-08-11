@@ -643,7 +643,7 @@ def c3f7f7f887b6468bf55102f1b6f8621d_txt():
 
 if __name__ == '__main__':
     init_db()
-    app.run(debug=True,port=2000,host='0.0.0.0')
+    app.run(debug=False,use_evalex=False,host='0.0.0.0',port=5000)
 
 # json.dump(statistics_j,statistics_f)
 # statistics_f.close()
