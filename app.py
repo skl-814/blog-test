@@ -1,4 +1,7 @@
 from flask import Flask,render_template,request,jsonify,redirect,url_for,session
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import DeclarativeBase
+from flask_migrate import Migrate
 import sqlite3 as sl
 import json
 import hashlib,uuid
@@ -15,6 +18,8 @@ app = Flask(__name__)
 
 app.secret_key = "fbc8b0c6046c8702bc0c5661807655425a52d991315f4f357a47a4c257aa47ea"
 app.config["PERMANENT_SESSION_LIFETIME"] = datetime.timedelta(days=1)
+
+work_dir = pathlib.Path(__file__).parent
 
 log_dir = pathlib.Path("./log")
 if not os.path.exists(log_dir):
@@ -71,6 +76,30 @@ for x in default_files:
         os.makedirs(os.path.dirname(x),exist_ok=True)
         with open(x,'w',encoding='utf-8') as f:
             json.dump(default_files[x],f)
+
+# set database
+
+base_db_path = "sqlite:///"
+db_path = base_db_path + "data.db"
+
+# for debug only
+# print('sqlite://' + str(user_db_path).replace('\\', '/'))
+# sys.exit()
+class DBBase(DeclarativeBase):
+    pass
+
+app.config['SQLALCHEMY_DATABASE_URI'] = db_path
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# print(f"sqlite:///{user_db_path.absolute().as_posix()}")
+# sys.exit()
+
+db = SQLAlchemy(model_class=DBBase)
+db.init_app(app)
+
+migrate = Migrate(app, db)
+
+from dbmodels import User, File, Post, PostCategory, FieldCategory
 
 statistic_path=data_dir / "statistics.json"
 def get_statistics(statistic_path=data_dir / "statistics.json"):
@@ -642,7 +671,7 @@ def c3f7f7f887b6468bf55102f1b6f8621d_txt():
 
 
 if __name__ == '__main__':
-    init_db()
+    # init_db()
     app.run(debug=True,port=2000,host='0.0.0.0')
 
 # json.dump(statistics_j,statistics_f)

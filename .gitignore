@@ -5,3 +5,5 @@ log/
 data/
 test_code/
 blog_articles/_cache/
+_preferences/
+.mypy_cache/

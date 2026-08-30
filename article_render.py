@@ -215,14 +215,16 @@ class Post_article:
     def __init__(self,title:str,author:str,date:str|float,file_path:pathlib.Path,ctime:float=0,mtime:float=0):
         self.title:str = self.title_strip(title)
         self.author:str = author
-        
+
+        self.time :float
+        self.date :str
         if type(date) == float:
-            self.time:float = date
-            self.date:str = time.asctime(time.localtime(date))
+            self.time= date
+            self.date= time.asctime(time.localtime(date))
 
         else:
-            self.date:str = str(date)
-            self.time:float = time.mktime(time.strptime(str(date)))
+            self.date= str(date)
+            self.time= time.mktime(time.strptime(str(date)))
 
         self.create_time = ctime or self.time# the create time
         self.modify_time = mtime or self.time# last modified time
